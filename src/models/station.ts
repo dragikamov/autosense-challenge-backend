@@ -63,18 +63,8 @@ class Station {
             }
 
             if (res.length) {
-                // Find pumps for this station
-                pump.Pump.findByStationId(StationId, (err: QueryError | null, pumps: pump.PumpData[] | null) => {
-                    if (err) {
-                        console.error("Error: ", err);
-                        result(err, null);
-                        return;
-                    }
-
-                    res[0].pumps = pumps;
-                    console.log("Found Station: ", res[0]);
-                    result(null, res[0] as StationData);
-                });
+                console.log("Found Station: ", res[0]);
+                result(null, res[0] as StationData);
             } else {
                 result(new NotFoundError(`not_found`), null);
             }

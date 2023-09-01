@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Station from '../models/station';
-import { Pump } from '../models/pump';
+import * as pump from '../models/pump';
 
 const createStation = async (req: Request, res: Response) => {
     const requiredProperties = ['id_name', 'name', 'latitude', 'longitude', 'city', 'address'];
@@ -94,7 +94,7 @@ const updateStation = async (req: Request, res: Response) => {
 };
 
 const getAllStations = async (req: Request, res: Response) => {
-    Station.getAll((err: Error | null, data?: any) => {
+    Station.getAll(async (err: Error | null, data?: any) => {
         if (err) {
             return res.status(500).json({
                 error: "Internal Server Error",
@@ -102,7 +102,28 @@ const getAllStations = async (req: Request, res: Response) => {
             });
         }
 
-        return res.status(200).json(data);
+        var promises = [];
+
+        for (let i = 0; i < data.length; i++) {
+            promises.push(new Promise((resolve, reject) => {
+                pump.Pump.findByStationId(data[i].id, (err: Error | null, pumps: pump.PumpData[] | null) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        data[i].pumps = pumps;
+                        resolve(data[i]);
+                    }
+                });
+            }));
+        }
+
+        await Promise.all(promises).then((values) => { return res.status(200).json({ stations: values }); }).catch((err) => {
+            return res.status(500).json({
+                error: "Internal Server Error",
+                message: err.message,
+            });
+        });
     });
 };
 
@@ -122,13 +143,27 @@ const getStationById = async (req: Request, res: Response) => {
             }
         }
         else {
+            pump.Pump.findByStationId(req.params.id, (err: Error | null, pumps: pump.PumpData[] | null) => {
+                if (err) {
+                    if (err.message !== "not_found") {
+                        return res.status(500).json({
+                            error: "Internal Server Error",
+                            message: err.message,
+                        });
+                    }
+                }
+                else {
+                    station.pumps = pumps;
+                }
+            });
+
             return res.status(200).json(station);
         }
     });
 };
 
 const deleteStation = async (req: Request, res: Response) => {
-    Pump.deleteByStationId(req.params.id, (err: Error | null, data?: any) => {
+    pump.Pump.deleteByStationId(req.params.id, (err: Error | null, data?: any) => {
         if (err) {
             if (err.message !== "not_found") {
                 return res.status(500).send({
