@@ -1,0 +1,37 @@
+version: '3'
+services:
+  mysql_database:
+    restart: always
+    image: 'mysql:latest'
+    expose:
+      - 3306
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=autosensechallengesecure
+      - MYSQL_DATABASE=autosense
+    volumes: 
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      static-network:
+        ipv4_address: 10.7.0.2
+  phpmyadmin:
+    restart: always
+    image: phpmyadmin
+    ports:
+      - 2000:80
+    environment:
+      - PMA_PORT=3306
+      - PMA_HOST=mysql_database
+      - MYSQL_ROOT_PASSWORD=autosensechallengesecure
+      - MYSQL_DATABASE=autosense
+    networks:
+      static-network:
+        ipv4_address: 10.7.0.5
+networks:
+  static-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.7.0.0/16
+         gateway: 10.7.0.1
