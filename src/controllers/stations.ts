@@ -31,7 +31,39 @@ const createStation = async (req: Request, res: Response) => {
             });
         }
 
-        return res.status(201).json(result);
+        if (req.body.hasOwnProperty('pumps')) {
+            var promises = [];
+
+            for (let i = 0; i < req.body.pumps.length; i++) {
+                promises.push(new Promise((resolve, reject) => {
+                    const pumpData = new pump.Pump({
+                        id_name: req.body.pumps[i].id_name,
+                        fuel_type: req.body.pumps[i].fuel_type,
+                        price: req.body.pumps[i].price,
+                        station_id: result.insertId,
+                        available: req.body.pumps[i].available,
+                    });
+
+                    pump.Pump.create(pumpData, (err: Error | null, result?: any) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(result);
+                        }
+                    });
+                }));
+            }
+        
+            Promise.all(promises).then((values) => { return res.status(201).json({...result, pumps: values}); }).catch((err) => {
+                return res.status(500).json({
+                    error: "Internal Server Error",
+                    message: err.message,
+                });
+            });
+        } else {
+            return res.status(201).json(result);
+        }
     });
 };
 
@@ -86,6 +118,7 @@ const updateStation = async (req: Request, res: Response) => {
                     }
                 }
                 else {
+                    // TODO: Update pumps
                     return res.status(200).json(result);
                 }
             });
@@ -164,12 +197,10 @@ const getStationById = async (req: Request, res: Response) => {
 
 const deleteStation = async (req: Request, res: Response) => {
     pump.Pump.deleteByStationId(req.params.id, (err: Error | null, data?: any) => {
-        if (err) {
-            if (err.message !== "not_found") {
-                return res.status(500).send({
-                    message: "Could not delete Station with ID " + req.params.id + " because of an error with the pumps under it."
-                });
-            }
+        if (err && err.message !== "not_found") {
+            return res.status(500).send({
+                message: "Could not delete Station with ID " + req.params.id + " because of an error with the pumps under it."
+            });
         }
         else {
             Station.remove(req.params.id, (err: Error | null, data?: any) => {

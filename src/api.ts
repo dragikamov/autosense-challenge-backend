@@ -27,10 +27,10 @@ api.use(bodyParser.urlencoded({ extended: false }));
 api.use(middlewares.allowCrossDomain);
 
 // Basic route
-api.get('/', (req, res) => {
-    const token = jwt.sign({ id: '1234567890' }, config.JWT_KEY, { expiresIn: '3d' });
+api.get('/', (req: express.Request, res: express.Response) => {
+    const token = jwt.sign({ id: '1234567890' }, config.JWT_KEY, { expiresIn: '7d' });
 
-    res.json({
+    return res.status(200).json({
         name: 'autoSense Challenge API',
         jwt: token,
     });
@@ -38,5 +38,12 @@ api.get('/', (req, res) => {
 
 api.use('/pumps', pumps);
 api.use('/stations', stations);
+
+api.get('*', (req: express.Request, res: express.Response) => {
+    return res.status(404).json({
+        error: 'Not Found',
+        message: 'The requested URL was not found on this server: ' + req.url,
+    });
+});
 
 export default api;
