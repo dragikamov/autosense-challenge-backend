@@ -36,6 +36,10 @@ const createStation = async (req: Request, res: Response) => {
 
             for (let i = 0; i < req.body.pumps.length; i++) {
                 promises.push(new Promise((resolve, reject) => {
+                    if (!req.body.pumps[i].hasOwnProperty('id_name') || !req.body.pumps[i].hasOwnProperty('fuel_type') || !req.body.pumps[i].hasOwnProperty('price') || !req.body.pumps[i].hasOwnProperty('available')) {
+                        reject(new Error("The request body must contain a id_name, fuel_type, price and available property for each pump"));
+                    }
+
                     const pumpData = new pump.Pump({
                         id_name: req.body.pumps[i].id_name,
                         fuel_type: req.body.pumps[i].fuel_type,
@@ -118,8 +122,65 @@ const updateStation = async (req: Request, res: Response) => {
                     }
                 }
                 else {
-                    // TODO: Update pumps
-                    return res.status(200).json(result);
+                    if (req.body.hasOwnProperty('pumps')) {
+                        var promises = [];
+
+                        for (let i = 0; i < req.body.pumps.length; i++) {
+                            promises.push(new Promise((resolve, reject) => {
+                                if (!req.body.pumps[i].hasOwnProperty('id_name') || !req.body.pumps[i].hasOwnProperty('fuel_type') || !req.body.pumps[i].hasOwnProperty('price') || !req.body.pumps[i].hasOwnProperty('available')) {
+                                    reject(new Error("The request body must contain a id_name, fuel_type, price and available property for each pump"));
+                                }
+
+                                const pumpData = new pump.Pump({
+                                    id_name: req.body.pumps[i].id_name,
+                                    fuel_type: req.body.pumps[i].fuel_type,
+                                    price: req.body.pumps[i].price,
+                                    station_id: req.params.id,
+                                    available: req.body.pumps[i].available,
+                                });
+
+                                if (req.body.pumps[i].hasOwnProperty('id') && req.body.pumps[i].id !== null) {
+                                    if (req.body.pumps[i].hasOwnProperty('deleted') && req.body.pumps[i].deleted === true) {
+                                        pump.Pump.remove(req.body.pumps[i].id, (err: Error | null, result?: any) => {
+                                            if (err) {
+                                                reject(err);
+                                            }
+                                            else {
+                                                resolve(void 0);
+                                            }
+                                        });
+                                    } else {
+                                        pump.Pump.updateById(req.body.pumps[i].id, pumpData, (err: Error | null, result?: any) => {
+                                            if (err) {
+                                                reject(err);
+                                            }
+                                            else {
+                                                resolve(result);
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    pump.Pump.create(pumpData, (err: Error | null, result?: any) => {
+                                        if (err) {
+                                            reject(err);
+                                        }
+                                        else {
+                                            resolve(result);
+                                        }
+                                    });
+                                }
+                            }));
+                        }
+
+                        Promise.all(promises).then((values) => { return res.status(200).json({...result, pumps: values}); }).catch((err) => {
+                            return res.status(500).json({
+                                error: "Internal Server Error",
+                                message: err.message,
+                            });
+                        });
+                    } else {
+                        return res.status(200).json(result);
+                    }
                 }
             });
         }

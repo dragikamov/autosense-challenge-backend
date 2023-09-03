@@ -12,7 +12,6 @@ import helmet from 'helmet';
 import * as cors from 'cors';
 import * as middlewares from './middlewares';
 
-import pumps from './routes/pumps';
 import stations from './routes/stations';
 
 const api = express();
@@ -36,7 +35,6 @@ api.get('/', (req: express.Request, res: express.Response) => {
     });
 });
 
-api.use('/pumps', pumps);
 api.use('/stations', stations);
 
 api.get('*', (req: express.Request, res: express.Response) => {
