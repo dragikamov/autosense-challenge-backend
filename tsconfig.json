@@ -4,5 +4,5 @@
       "allowJs": true,
       "target": "es5"
     },
-    "include": ["./src/**/*", "./index.ts"]
+    "include": ["./src/**/*", "./index.ts", "test/1.test.ts"]
 }

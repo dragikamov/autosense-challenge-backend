@@ -2,6 +2,7 @@ import { QueryError, RowDataPacket, ResultSetHeader, ProcedureCallPacket } from 
 import sql from './db';
 import * as pump from './pump';
 
+// Define StationData interface
 interface StationData {
     id?: number;
     id_name: string;
@@ -13,6 +14,7 @@ interface StationData {
     pumps?: pump.PumpData[];
 }
 
+// Class for no station found error
 class NotFoundError extends Error {
     constructor(message: string) {
         super(message);
@@ -37,33 +39,32 @@ class Station {
         this.address = station.address;
     }
 
+    // Create a new station
     static create(newStation: StationData, result: (error: QueryError | null, StationData: StationData | null) => void): void {
         sql.query("INSERT INTO stations SET ?", newStation, (err: QueryError, res: ResultSetHeader | RowDataPacket[] | ResultSetHeader[] | RowDataPacket[][] | ResultSetHeader[] | ProcedureCallPacket) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
 
-            if ("insertId" in res) {console.log("Created Station: ", { id: res.insertId, ...newStation });
-            result(null, { id: res.insertId, ...newStation });}
+            if ("insertId" in res) {
+                result(null, { id: res.insertId, ...newStation });
+            }
             else {
-                console.log("Created Station: ", { id: newStation.id, ...newStation });
                 result(null, { id: newStation.id, ...newStation });
             }
         });
     }
 
+    // Get a station by id
     static findById(StationId: number, result: (error: QueryError | NotFoundError | null, StationData: StationData | null) => void): void {
         sql.query(`SELECT * FROM stations WHERE id = ${StationId}`, (err, res: RowDataPacket[]) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
 
             if (res.length) {
-                console.log("Found Station: ", res[0]);
                 result(null, res[0] as StationData);
             } else {
                 result(new NotFoundError(`not_found`), null);
@@ -71,19 +72,19 @@ class Station {
         });
     }
 
+    // Get all stations
     static getAll(result: (error: QueryError | null, Stations: StationData[] | null) => void): void {
         sql.query(`SELECT * FROM stations`, (err, res: RowDataPacket[]) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
 
-            console.log("Stations: ", res);
             result(null, res as StationData[]);
         });
     }
 
+    // Update a station by id
     static updateById(
         id: number,
         Station: StationData,
@@ -94,7 +95,6 @@ class Station {
             [Station.id_name, Station.name, Station.latitude, Station.longitude, Station.city, Station.address, id],
             (err: QueryError, res: ResultSetHeader | RowDataPacket[] | ResultSetHeader[] | RowDataPacket[][] | ResultSetHeader[] | ProcedureCallPacket) => {
                 if (err) {
-                    console.error("Error: ", err);
                     result(err, null);
                     return;
                 }
@@ -104,16 +104,15 @@ class Station {
                     return;
                 }
 
-                console.log("Updated Station: ", { id: id, ...Station });
                 result(null, { id: id, ...Station });
             }
         );
     }
 
+    // Delete a station by id
     static remove(id: number, result: (error: QueryError | NotFoundError | null, res: RowDataPacket[] | null) => void): void {
         sql.query("DELETE FROM stations WHERE id = ?", id, (err, res) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
@@ -123,7 +122,6 @@ class Station {
                 return;
             }
 
-            console.log("Deleted Station with ID: ", id);
             result(null, res as RowDataPacket[]);
         });
     }

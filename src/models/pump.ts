@@ -1,6 +1,7 @@
 import { QueryError, RowDataPacket, ResultSetHeader, ProcedureCallPacket } from 'mysql2'; // Import types for MySQL2
 import sql from './db';
 
+// Define PumpData interface
 interface PumpData {
     id?: number;
     id_name: string;
@@ -10,6 +11,7 @@ interface PumpData {
     station_id: number;
 }
 
+// Class for no pump found error
 class NotFoundError extends Error {
     constructor(message: string) {
         super(message);
@@ -32,57 +34,39 @@ class Pump {
         this.station_id = pump.station_id;
     }
 
+    // Create a new pump
     static create(newPump: PumpData, result: (error: QueryError | null, pumpData: PumpData | null) => void): void {
         sql.query("INSERT INTO pumps SET ?", newPump, (err: QueryError, res: ResultSetHeader | RowDataPacket[] | ResultSetHeader[] | RowDataPacket[][] | ResultSetHeader[] | ProcedureCallPacket) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
 
-            if ("insertId" in res) {console.log("Created Pump: ", { id: res.insertId, ...newPump });
-            result(null, { id: res.insertId, ...newPump });}
+            if ("insertId" in res) {
+                result(null, { id: res.insertId, ...newPump });
+            }
             else {
-                console.log("Created Pump: ", { id: newPump.id, ...newPump });
                 result(null, { id: newPump.id, ...newPump });
             }
         });
     }
 
-    static findById(pumpId: number, result: (error: QueryError | NotFoundError | null, pumpData: PumpData | null) => void): void {
-        sql.query(`SELECT * FROM pumps WHERE id = ${pumpId}`, (err, res: RowDataPacket[]) => {
-            if (err) {
-                console.error("Error: ", err);
-                result(err, null);
-                return;
-            }
-
-            if (res.length) {
-                console.log("Found Pump: ", res[0]);
-                result(null, res[0] as PumpData);
-            } else {
-                result(new NotFoundError(`not_found`), null);
-            }
-        });
-    }
-
+    // Get all pumps for a station
     static findByStationId(stationId: number, result: (error: QueryError | null, pumps: PumpData[] | null) => void): void {
         sql.query(`SELECT * FROM pumps WHERE station_id = ${stationId}`, (err, res: RowDataPacket[]) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
 
-            console.log("Pumps: ", res);
             result(null, res as PumpData[]);
         });
     }
-    
+
+    // Delete all pumps for a station
     static deleteByStationId(stationId: number, result: (error: QueryError | NotFoundError | null, res: RowDataPacket[] | null) => void): void {
         sql.query("DELETE FROM pumps WHERE station_id = ?", stationId, (err, res) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
@@ -92,11 +76,11 @@ class Pump {
                 return;
             }
 
-            console.log("Deleted Pumps with Station ID: ", stationId);
             result(null, res as RowDataPacket[]);
         });
     }
 
+    // Update a pump by id
     static updateById(
         id: number,
         pump: PumpData,
@@ -107,7 +91,6 @@ class Pump {
             [pump.id_name, pump.fuel_type, pump.price, pump.available, pump.station_id, id],
             (err: QueryError, res: ResultSetHeader | RowDataPacket[] | ResultSetHeader[] | RowDataPacket[][] | ResultSetHeader[] | ProcedureCallPacket) => {
                 if (err) {
-                    console.error("Error: ", err);
                     result(err, null);
                     return;
                 }
@@ -117,16 +100,15 @@ class Pump {
                     return;
                 }
 
-                console.log("Updated Pump: ", { id: id, ...pump });
                 result(null, { id: id, ...pump });
             }
         );
     }
 
+    // Delete a pump by id
     static remove(id: number, result: (error: QueryError | NotFoundError | null, res: RowDataPacket[] | null) => void): void {
         sql.query("DELETE FROM pumps WHERE id = ?", id, (err, res) => {
             if (err) {
-                console.error("Error: ", err);
                 result(err, null);
                 return;
             }
@@ -136,7 +118,6 @@ class Pump {
                 return;
             }
 
-            console.log("Deleted Pump with ID: ", id);
             result(null, res as RowDataPacket[]);
         });
     }

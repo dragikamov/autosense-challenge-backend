@@ -4,8 +4,8 @@
   "description": "autoSense Challenge Backend",
   "main": "index.js",
   "scripts": {
-    "start": "node ./built/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx tsc && node ./built/index.js",
+    "test": "mocha --require ts-node/register 'test/**/*.test.ts'"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,14 @@
   },
   "homepage": "https://github.com/dragikamov/autosense-challenge-backend#readme",
   "devDependencies": {
-    "@types/node": "^20.5.7",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.5.9",
+    "@types/supertest": "^2.0.12",
+    "chai": "^4.3.8",
+    "mocha": "^10.2.0",
+    "supertest": "^6.3.3",
+    "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
@@ -27,6 +34,8 @@
     "express": "^4.18.2",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.6.0"
+    "mysql2": "^3.6.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   }
 }
