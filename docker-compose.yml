@@ -1,0 +1,23 @@
+version: '3'
+services:
+  autosense-challenge-backend:
+    restart: always
+    image: ubuntu:jammy
+    volumes:
+      - ./data:/data
+      - ./logs:/logs
+    ports:
+      - '4000:4000'
+    build: .
+    env_file:
+      - .env
+    networks:
+      static-network:
+        ipv4_address: 10.8.0.2
+networks:
+  static-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.8.0.0/16
+         gateway: 10.8.0.1
