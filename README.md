@@ -7,3 +7,5 @@
 - To run the tests you can simply run `npm run test`.
 
 - The API documentation can be found on [localhost:4000/api-docs](localhost:4000/api-docs) after the backend has been started.
+
+- If the Authorization Token is needed, one can be obtained from [localhost:4000/](localhost:4000/). It would need to be put in the Autorization parameter of a request's header WITHOUT the "Bearer " prefix.
