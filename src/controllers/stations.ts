@@ -51,7 +51,7 @@ const createStation = async (req: Request, res: Response) => {
                         id_name: req.body.pumps[i].id_name,
                         fuel_type: req.body.pumps[i].fuel_type,
                         price: req.body.pumps[i].price,
-                        station_id: result.insertId,
+                        station_id: result.id,
                         available: req.body.pumps[i].available,
                     });
 
